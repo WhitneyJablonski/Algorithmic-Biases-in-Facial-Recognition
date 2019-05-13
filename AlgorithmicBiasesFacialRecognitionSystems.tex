@@ -91,14 +91,12 @@
 %	ARTICLE CONTENTS
 %----------------------------------------------------------------------------------------
 
-\section*{Summary} % The \section*{} command stops section numbering
+%\section*{Summary} % The \section*{} command stops section numbering
 
-\addcontentsline{toc}{section}{Summary} % Adds this section to the table of contents
+%\addcontentsline{toc}{section}{Summary} % Adds this section to the table of contents
 
 %\lipsum[1-3] % Dummy text
 % and some mathematics $\cos\pi=-1$ and $\alpha$ in the text\footnote{And some mathematics $\cos\pi=-1$ and $\alpha$ in the text.}.
-
-Add in the summary when results section is finished.
 
 %------------------------------------------------
 
@@ -168,7 +166,7 @@ ResNet50 & 25.5 & \cite{resnet} \\
 
 \noindent Each of the models listed in Table \ref{tab:tab2} are available with pre-trained weights for identity classification. For our purposes, we intend to use a neural network model for the classification of gender in a racially diverse data set. Because none of these models are trained for binary classification of gender, we found that they did not do well in classifying gender out-of-the-box. When the models listed in Table \ref{tab:tab2}, one can either use the full model directly or use only the architecture and trainimag using a different data set. Prior to training, the architecture can be manipulated to perform a new task (e.g., gender classification) or to achieve higher accuracy for different data sets. 
 
-The models listed in Table \ref{tab:tab2} are highly complex with millions of parameters each. We decided to evaluate a much simpler model to juxtapose the possibility that a small architecture tuned with a balanced data set can achieve good accuracy for gender classification. Subedi recently developed a CNN with 674,178 parameters for gender, age, and race classification from the UTKFace data set, and the architecture is shown in Figure \ref{fig:fig3}.\cite{subedi} Subedi's model architecture consists of 5 2D convolution layers each with a batch normalization layer followed by a 2D maximum pooling layer afterwards. The input layer uses a filter size of 32, and each subsequent convolutional layer multiplies the filter size by an integer corresponding to the layer number (e.g., for concolutional layer 2 the filter size is 32 $\times$ 2). The activation function is a rectified linear unit (ReLU) for all convolutional layers. Subedi uses a so-called 'bottleneck' layer (\mintinline{python}{GlobalMaxPool2D} in Keras) which outputs a 1-dimensional tensor and feeds 3 separate dense layers to produce 3 outputs. In this way, a dense layer is defined for each of the 3 categories each with an appropriate activation function for the type of classification problem (e.g., binary or multiclass). When the model is created, the 3 dense layers are passed in a list as the output. For our purposes, we have adapted the model to output only the gender classification.
+The models listed in Table \ref{tab:tab2} are highly complex with millions of parameters each. We decided to evaluate a much simpler model to juxtapose the possibility that a small architecture tuned with a balanced data set can achieve good accuracy for gender classification. Subedi recently developed a CNN with 674,178 parameters for gender, age, and race classification from the UTKFace data set, and the architecture is shown in Figure \ref{fig:fig3}.s \cite{subedi} Subedi's model architecture consists of 5 2D convolution layers each with a batch normalization layer followed by a 2D maximum pooling layer afterwards. The input layer uses a filter size of 32, and each subsequent convolutional layer multiplies the filter size by an integer corresponding to the layer number (e.g., for concolutional layer 2 the filter size is 32 $\times$ 2). The activation function is a rectified linear unit (ReLU) for all convolutional layers. Subedi uses a so-called 'bottleneck' layer (\mintinline{python}{GlobalMaxPool2D} in Keras) which outputs a 1-dimensional tensor and feeds 3 separate dense layers to produce 3 outputs. In this way, a dense layer is defined for each of the 3 categories each with an appropriate activation function for the type of classification problem (e.g., binary or multiclass). When the model is created, the 3 dense layers are passed in a list as the output. For our purposes, we have adapted the model to output only the gender classification.
 
 \begin{figure*}[ht]\centering % Using \begin{figure*} makes the figure take up the entire width of the page
 \includegraphics[width=\linewidth]{img/subedi}
@@ -202,46 +200,124 @@ We used over-sampling and down-sampling to balance the data set. The 'other' rac
 
 \section{Results}
 
-Because we began with a broad range of models and data for this work, we began by performing cursory experiments with each model to evaluate 1) computational time, 2) baseline accuracy, and 3) ease of use. Our initial results made it clear that working with the pre-trained models would be computationally prohibitive. We also found that they did not achieve satisfactory results for gender classification. 
+Because we began with a broad range of models and data for this work, we began by performing cursory experiments with each model to evaluate 1) computational time, 2) baseline accuracy, and 3) ease of use. Our initial results made it clear that working with the pre-trained models would be computationally prohibitive. We also found that they did not achieve satisfactory results for gender classification. Transfer learning from pre-trained models can be done in three ways: 1) feature extraction, 2) fine tuning, and 3) retraining. 
 
-\subsection{Gender Classification with Racially Diverse}
-Performance with respect to age
+We evaluated the Resnet50 model both by retraining on the UTKFace cropped data set and by freezing the convolutional base layer and adding a new classification head. We found that gender classification accuracy after training on the UTKFace data set was between 60 - 65\%. In addition to poor accuracy, we found that the training and validation accuracy were between 30 to 40 points off from one another. This indicated that there was a problem with our implementation of our model, but we were not able to troubleshoot it so that we felt comfortable with the results. For the InceptionV3 model, we were able to achieve better gender classification accuracies of more than 90\% but the computational time was long and the complexity of the model made it difficult to interpret results reliably. We attempted to use the VGG16 model, but were unable to get reliable results. Code for these experiments is included with the project documentation. Ultimately, we decided to forgo using one of the pre-trained models and architectures and instead focused on tuning a simple CNN for gender classification. 
 
+\subsection{Base Case Gender Classification}
+Using the model developed by Subedi (Figure \ref{fig:fig3}) as a baseline, we adapted the architecture to include a dropout layers between the convolutional and batch normalization layers. The dropout layers are a form of regularizer that randomly drop neurons from the network. In doing this, other neurons in the network must do the work of the dropped neuron thereby making it less probable that a single neuron performs a single task in the model. As a result, as the network learns from the training data set it becomes more capable of generalizing to randomness thereby reducing the probability of overfitting.
 
+The base case training for the gender classified was done using a batch size of 64, a base filter size of 16, and 10 epochs. The softmax activation function was used to do the binary classification and the categorical crossentropy loss function was used to calculate loss. We used the RMSProp optimizer because it yielded superior results. Results from the base case model are shown in Figure \ref{fig:fig4} for each of the race categories that we studied. In this small subset of images chosen at random from the validation data set, there is only one incorrect gender assignment. During training, the training accuracy reached just under 92\% whereas the validation accuracy hovered around 90\%. These are excellent baseline error rates, and the simple model architecture appears to perform very well even with only very cursory development. 
 
-Used 16 filters 
-\lipsum[11] % Dummy text
+\subsection{Effect of Data Set Balancing}
 
-\subsection{Training with Races Balanced}
+One of the main issues to which algorithmic bias has been attributed is the issue of racial imbalance in training data sets. To overcome this, we evaluated the effect of using over-sampling and down-sampling to eliminate algorithmic bias. A comparison of model performance for f1 score by gender and race is given in Table \ref{tab:tab3}.
 
-We took two approaches to balancing the data set: over-sampling and down-sampling. 
-\lipsum[11] % Dummy text
+\begin{table}[hbt]
+\caption{F1 scores for all 3 models by race.}
+\centering
+\begin{tabular}{lcccccc}
+\toprule
+& \multicolumn{2}{c}{Baseline} & \multicolumn{2}{c}{Down-Sampling} & \multicolumn{2}{c}{Over-Sampling}\\
+\cmidrule(r){1-7}
+ & M & F & M & F & M & F \\
+\midrule
+White & 0.91 & 0.9 & 0.88 & 0.86 & 0.95 & 0.94\\
+Black & 0.93 & 0.93 & 0.9 & 0.89 & 0.93 & 0.92\\
+Asian & 0.92 & 0.95 & 0.87 & 0.91 & 0.93 & 0.95 \\
+Indian & 0.92 & 0.88 & 0.89 & 0.84 & 0.95 & 0.92 \\
+Other & 0.91 & 0.93 & 0.88 & 0.90 & 0.93 & 0.94 \\
+\bottomrule
+\multicolumn{7}{l}{M = male, F = female}
+\end{tabular}
+\label{tab:tab3}
+\end{table}
 
+Down-sampling the data for each race to the same number of images for the least represented race (other) reduced the training data set by over 70\%. The reduction in the size of the training data set did not strongly inhibit the training accuracy which remained close to 90\%. The validation accuracy was nearly 5 points worse than the baseline model with an average validation accuracy of around 85\%. The overall misclassification rate for the down-sample trained model was over 13\%. This is slightly higher than the baseline model misclassification rate of 12.4\%. The down-sampled model did have better precision (85.3\%) than the baseline model (82.4\%) indicating that though the overall accuracy was lower it predicted more true positives per predicted true value. The down-sampling model computational time was similar to that of the baseline model, and 10 epochs were completed in a little over 10 minutes. Overall, though, the down-sampled model was not a significant improvement over the baseline model.
 
-\lipsum[11] % Dummy text
+\begin{figure}[ht]\centering % Using \begin{figure*} makes the figure take up the entire width of the page
+\includegraphics[width=.95\linewidth]{img/confmat_white}
+\caption{Confusion matrix for race = white from the optimal gender classification model.}
+\label{fig:fig5}
+\end{figure}
+
+Over-sampling, the practice of adding redundant images to the data set by random sampling and replacement, facilitated an improvement in overall modeling accuracy. To visualize the model performance by race, we plotted the confusion matrices for each race individually as shown in Figure \ref{fig:fig:5} (white) and Figure \ref{fig:fig:6} (black). All confusion matrix plots are given in the accompanying notebook, but a table summarizing the precision and misclassification rates by race is given in Table \ref{tab:tab4}. 
+
+\begin{table}[hbt]
+\caption{Overall precision and misclassification rates for the tuned model by race.}
+\centering
+\begin{tabular}{lccc}
+\toprule
+%\multicolumn{2}{c}{Name} \\
+%\cmidrule(r){1-2}
+Race & Precision & Misclassification Rate \\
+\midrule
+White & 91\% & 8\% \\
+Black & 92\% & 12\% \\
+Asian & 94\% & 6\% \\
+Indian & 94\% & 6\% \\
+Other & 94\% & 6\% \\
+\bottomrule
+\end{tabular}
+\label{tab:tab4}
+\end{table}
+
+\noindent In the baseline model, the average gender classification precision was 88\% for black and white, 94\% for indian, 93\% for asian, and 91\% for other. Though our model does not offer a huge improvement and totally equity, we have produced a model that has higher precision for 4 of the 5 races. Furthermore, the model has a higher overall accuracy for gender prediction and better than 90\% precision for all races. We surmise based on these results that over-sampling and adding back augmented images improves the models ability to classify gender and reduces model bias.
+
+\begin{figure}[ht]\centering % Using \begin{figure*} makes the figure take up the entire width of the page
+\includegraphics[width=.95\linewidth]{img/confmat_black}
+\caption{Confusion matrix for race = black from the optimal gender classification model.}
+\label{fig:fig6}
+\end{figure}
+
+%\begin{figure}[ht]\centering % Using \begin{figure*} makes the figure take up the entire width of the page
+%\includegraphics[width=.95\linewidth]{img/confmat_asian}%
+%\caption{Confusion matrix for race = asian from the optimal gender classification model.}
+%\label{fig:fig9}
+%\end{figure}
+
 \subsection{Feature Representation Mapping}
-\lipsum[11] % Dummy text
+
+\begin{figure*}[ht]\centering % Using \begin{figure*} makes the figure take up the entire width of the page
+\includegraphics[width=.95\linewidth]{img/saliency}
+\caption{Saliency map for consecutive convolutional layers demonstrating the progression from a raw image to only the most important facial features.}
+\label{fig:fig7}
+\end{figure*}
+
+It is informative to visualize the important features in an image that contributes to its classification in a neural network. For our tuned model, we used saliency maps to elucidate the important facial features from different races that contribute to their classification as males or females. A series of saliency maps from convolutional layers throughout the model is shown in Figure \ref{fig:fig7} and demonstrates the progression from a full face image to only the most pertinent features. As the model progresses through the layers, the edges in the face are isolated then reduced to a handful of regions in the face that are unique. Ultimately, the features in the face left are the forehead, cheek bones, nose, mouth, eyes, and chin area. 
 
 
-saliency map
-discuss how PCA might be used to evaluate features for determining gender, but it's beyond the scope of this project. You might use PCA 
+Evaluating saliency mapping and its relationship with feature distinctions between races is beyond the scope of this project, but we considered the idea of uses PCA to elucidated important features and evaluating bias in a classified built from that analysis. There are examples in the literature for performing PCA on the landmark features data for images, and extracting Eigenvectors which can then be used for created support vector machines (SVM). This would be an interesting way to build a gender classifier, and the idea of producing a neural net-free classifier poses prospects for much faster models. 
 
 \subsection{Validation with Other Data Sets}
-We validated the model using the VGGFace2 and the RFW test data sets. 
-\lipsum[11] % Dummy text
+We revisited the original facial image data set (VGGFace2) that we began the project with to validate our gender classification model. We tested a total of 30 images with 6 images from each race. We used a very small sample size because we had to manually label both the gender and the race. Though this is not a comprehensive evaluation of the model, it serves as a useful check to see if the model is useful for other data sets with different image quality. Prior to evaluating the images, they were preprocessed using the \mintinline{python}{dlib} package. This allowed us to use the complex 'in-the-wild' images directly. Using the 68 face landmark shape detector from \mintinline{python}{dlib}, we were able to detect and isolate only the faces in each image.
 
-confusion matrix
+The cropped images from the VGGFace2 data set were saved and used as a validation data set with the over-sampled model. A comparison of raw images from the VGGface2 with corresponding predicted gender and ground truth labels are shown in Figure \ref{fig:fig8}. The model achieved a precision of 100\%, but had a misclassification rate of 40\%. The low sample size probably contributed greatly to these results, but we built and demonstrated a gender classifier from a fairly simple CNN architecture that is extensible to dissimilar data sets. Our research into pre-trained models indicated that this is relatively uncommon and that benchmarks are so tightly bounded that it is difficult for even the most precise and highest accuracy models to achieve adequate classification on other data sets. Because of this, we put forth that the model we have developed not only reduced racial bias but is also sufficient for use with data sets other than the one that it was trained with.
+
+\begin{figure*}[ht]\centering % Using \begin{figure*} makes the figure take up the entire width of the page
+\includegraphics[width=.95\linewidth]{img/VGG_facelabels}
+\caption{Confusion matrix for race = white from the optimal gender classification model.}
+\label{fig:fig8}
+\end{figure*}
 
 \section{Conclusions}
-During this project we improved a classifier for gender prediction from racially heterogeneous images. Our accomplishments include:
+During this project, we improved a classifier for gender prediction from racially heterogeneous images using a relatively simple CNN. Recently, there has been media coverage of so-called 'algorithmic bias' that is the result of imbalanced training data sets. As a result, widespread algorithmic bias has crept into popular, publicly available pre-trained models such as Google's Inception, Microsoft's ResNet, and the VGG group's VGG models. Our approach to investigating this issue was twofold: we evaluated whether pre-trained models were necessary for producing an accurate gender classifier and we developed and tuned a CNN for gender classification. Pre-trained models are incredibly valuable, and will continue to provide the groundwork for building complex, diverse, and extensible models. However, in our work we found that because the aforementioned pre-trained models are not meant specifically for gender classification, they cannot be used out of the box for such a task. We applied methods for adapting these models to gender classification including training the unchanged architecture with racially balanced data sets for gender classification and freezing certain layers and retraining the convolutional head layer (feature extraction). We found the models to be difficult to work with and computationally expensive which lead us to the question of whether we could reduce algorithmic racial bias using a simpler model.
 
+We leveraged an existing CNN architecture for gender classification and fine-tuned it to produce higher accuracy and less algorithmic bias. We achieved this by implementing image augmentation in the form of down-sampling and over-sampling. When over-sampling, we randomly selected images to add back to the training data set, but flipped and added noise to the resampled images. The main conclusions from this work were:
 
 \begin{itemize}
-\item list of conclusions
-\item list of conclusions
-\item list of conclusions
+\item Pre-trained models can be useful in certain circumstances, but are difficult to work with, computationally expensive, and might not fit the needs for the particular classifier that is desired
+\item Algorithmic bias can be reduced when balancing the training data set by race 
+\item Down-sampling, removing images to balance the training data set, results in lower modeling accuracy because of the reduced training data set size
+\item Over-sampling, adding images by resampling with noise/translation, improves modeling accuracy 
 \end{itemize}
 %------------------------------------------------
+
+\phantomsection
+\phantomsection
+\phantomsection
+\phantomsection
+\phantomsection
 \phantomsection
 
 %----------------------------------------------------------------------------------------
